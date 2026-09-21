@@ -47,10 +47,16 @@ function formatSummaryValue(value: unknown, column: any) {
   const props = column?.fieldSchema?.['x-component-props'] || {};
   if (typeof value === 'number') {
     const precision = Number(props.precision);
-    return new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: Number.isFinite(precision) ? precision : undefined,
-      maximumFractionDigits: Number.isFinite(precision) ? precision : 20,
+    const step = String(props.step || '');
+    const stepPrecision = step.includes('.') ? step.split('.')[1].length : undefined;
+    const digits = Number.isFinite(precision) ? precision : stepPrecision;
+    const number = new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits ?? 20,
     }).format(value);
+    const prefix = typeof props.addonBefore === 'string' ? props.addonBefore : '';
+    const suffix = typeof props.addonAfter === 'string' ? props.addonAfter : '';
+    return `${prefix}${number}${suffix}`;
   }
   const component = String(column?.fieldSchema?.['x-component'] || '');
   if (component.includes('Date')) {

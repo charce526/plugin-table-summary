@@ -48,6 +48,10 @@ export async function aggregateTableSummary(ctx: any) {
   const collection: any = repository?.collection;
   if (!repository || !collection) ctx.throw(404, '数据表不存在');
 
+  if (typeof repository.aggregate !== 'function' || typeof repository.count !== 'function') {
+    ctx.throw(400, '当前数据源不支持聚合统计');
+  }
+
   const params: any = ctx.action?.params || {};
   const configs = parseSummary(params.summary);
   const permittedFields = ctx.permission?.can?.params?.fields;

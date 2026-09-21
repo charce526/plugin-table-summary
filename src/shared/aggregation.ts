@@ -11,6 +11,11 @@ function numeric(values: unknown[]) {
     .filter((value) => Number.isFinite(value));
 }
 
+function readValue(row: Record<string, any>, path: string) {
+  if (Object.prototype.hasOwnProperty.call(row, path)) return row[path];
+  return path.split('.').reduce((value: any, part) => value?.[part], row);
+}
+
 export function calculatePageSummary(
   rows: Record<string, any>[],
   fields: FieldSummaryConfig[],
@@ -18,7 +23,7 @@ export function calculatePageSummary(
   const result: SummaryResult = {};
 
   for (const config of fields) {
-    const values = rows.map((row) => row?.[config.field]);
+    const values = rows.map((row) => readValue(row, config.field));
     let value: SummaryValue;
 
     switch (config.operation) {

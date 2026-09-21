@@ -36,6 +36,8 @@
     "@nocobase/database": ">=2.2.10 <2.3.0",
     "@nocobase/flow-engine": ">=2.2.10 <2.3.0",
     "@nocobase/server": ">=2.2.10 <2.3.0",
+    "@formily/react": "^2.3.0",
+    "antd": "^5.0.0",
     "react": "^18.0.0"
   },
   "devDependencies": {
