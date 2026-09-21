@@ -2,15 +2,26 @@ import { Plugin } from '@nocobase/server';
 import { aggregateTableSummary } from './aggregate';
 
 export default class PluginTableSummaryServer extends Plugin {
-  async load() {
-    // Global collection action: /api/<collection>:tableSummary
-    this.app.resourceManager.registerActionHandlers({
+  private readonly registeredManagers = new WeakSet<object>();
+
+  private registerForDataSource(dataSource: any) {
+    const manager = dataSource?.resourceManager;
+    const acl = dataSource?.acl;
+    if (!manager || !acl || this.registeredManagers.has(manager)) return;
+
+    manager.registerActionHandlers({
       tableSummary: aggregateTableSummary,
     });
 
-    // Reuse the collection "view" permission. The ACL middleware therefore
-    // merges the same role data scope into ctx.action.params.filter.
-    const acl = this.app.acl as any;
+    // Map to the collection view permission so ACL merges the same data scope,
+    // field whitelist and current-user variables as the native list request.
     acl.actionAlias.set('tableSummary', 'view');
+    this.registeredManagers.add(manager);
+  }
+
+  async load() {
+    this.app.dataSourceManager.afterAddDataSource((dataSource: any) => {
+      this.registerForDataSource(dataSource);
+    });
   }
 }
