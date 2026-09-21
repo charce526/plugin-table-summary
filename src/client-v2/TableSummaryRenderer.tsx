@@ -57,7 +57,7 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
           page: undefined,
           pageSize: undefined,
           paginate: false,
-          summary: fields,
+          summary: JSON.stringify(fields),
         },
       })
       .then((response: any) => {
@@ -89,11 +89,12 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
         {columns.map((column: any, columnIndex: number) => {
           const field = column?.collectionField?.name || column?.props?.dataIndex;
           const configured = fields.some((item) => item.field === field);
+          const formatted = configured ? formatValue(values[field], column) : null;
           const content = columnIndex === 0
-            ? config.label || '统计'
-            : configured
-              ? formatValue(values[field], column)
-              : null;
+            ? formatted
+              ? `${config.label || '统计'} · ${formatted}`
+              : config.label || '统计'
+            : formatted;
           return (
             <Table.Summary.Cell key={column.uid || field || columnIndex} index={columnIndex + offset}>
               <Typography.Text strong>{loading && configured ? '…' : content}</Typography.Text>
