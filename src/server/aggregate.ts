@@ -3,7 +3,9 @@ import type { FieldSummaryConfig, SummaryFunction, SummaryResult } from '../shar
 const OPERATIONS = new Set<SummaryFunction>(['count', 'countNonEmpty', 'sum', 'average', 'max', 'min']);
 const NUMERIC_TYPES = new Set(['integer', 'bigInt', 'float', 'double', 'decimal', 'real', 'number']);
 const DATE_TYPES = new Set(['date', 'dateOnly', 'datetime', 'timestamp']);
+const RELATION_TYPES = new Set(['belongsTo', 'hasOne', 'hasMany', 'belongsToMany', 'hasManyThrough']);
 const MAX_FIELDS = 50;
+const MAX_FIELD_DEPTH = 4;
 const SAFE_FIELD = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function parseSummary(value: unknown): FieldSummaryConfig[] {
@@ -43,6 +45,28 @@ function assertOperationAllowed(field: any, operation: SummaryFunction) {
   }
 }
 
+/** 是否为关联字段（belongsTo / hasOne / hasMany / belongsToMany 等）。 */
+function isRelationField(field: any) {
+  return RELATION_TYPES.has(fieldType(field));
+}
+
+/**
+ * 关联字段「非空计数」用的外键。
+ * belongsTo / hasOne 的外键在本表上，可以按外键是否为空统计；
+ * hasMany / belongsToMany 的外键在对方表上，无法在本表聚合。
+ */
+function relationForeignKey(collection: any, field: any, head: string): string | null {
+  const declared = typeof field?.foreignKey === 'string' ? field.foreignKey : '';
+  if (declared && collection.getField(declared)) return declared;
+
+  const type = fieldType(field);
+  if (type === 'belongsTo' || type === 'hasOne') {
+    const fallback = `${head}Id`;
+    if (collection.getField(fallback)) return fallback;
+  }
+  return null;
+}
+
 export async function aggregateTableSummary(ctx: any) {
   const repository: any = ctx.getCurrentRepository();
   const collection: any = repository?.collection;
@@ -59,20 +83,50 @@ export async function aggregateTableSummary(ctx: any) {
   const result: SummaryResult = {};
 
   for (const config of configs) {
-    if (!SAFE_FIELD.test(config.field) || !OPERATIONS.has(config.operation)) {
+    // 字段名可能是关联路径（例如 createdBy.nickname），逐段校验后只使用第一段（本表字段）。
+    const segments = config.field.split('.');
+    const head = segments[0] || '';
+    const nested = segments.length > 1;
+    if (
+      !head ||
+      segments.length > MAX_FIELD_DEPTH ||
+      segments.some((segment) => !SAFE_FIELD.test(segment)) ||
+      !OPERATIONS.has(config.operation)
+    ) {
       ctx.throw(400, '统计字段或统计方式无效');
     }
-    const field: any = collection.getField(config.field);
-    if (!field) ctx.throw(400, `统计字段 ${config.field} 不存在`);
-    if (restricted && !permittedFields.includes(config.field)) {
-      ctx.throw(403, `没有字段 ${config.field} 的查看权限`);
-    }
-    assertOperationAllowed(field, config.operation);
 
+    // 计数只统计行数，不涉及字段值，字段允许是关联路径。
     if (config.operation === 'count') {
       result[config.field] = await repository.count({ filter: params.filter });
       continue;
     }
+
+    const field: any = collection.getField(head);
+    if (!field) ctx.throw(400, `统计字段 ${config.field} 不存在`);
+
+    // 关联数据表的字段（含 createdBy.nickname 这类路径）无法在本表直接聚合：
+    // 「非空计数」退化为「该关联是否为空」，其余统计方式给出明确提示，
+    // 而不是笼统的“统计字段不存在”。
+    if (nested || isRelationField(field)) {
+      if (config.operation !== 'countNonEmpty') {
+        ctx.throw(400, `字段 ${config.field} 来自关联数据表，仅支持「计数」「非空计数」`);
+      }
+      const foreignKey = relationForeignKey(collection, field, head);
+      if (!foreignKey) {
+        ctx.throw(400, `字段 ${config.field} 的关联方式无法在本表统计，请改用「计数」`);
+      }
+      const relationFilter = { [foreignKey]: { $not: null } };
+      result[config.field] = await repository.count({
+        filter: params.filter ? { $and: [params.filter, relationFilter] } : relationFilter,
+      });
+      continue;
+    }
+
+    if (restricted && !permittedFields.includes(head)) {
+      ctx.throw(403, `没有字段 ${config.field} 的查看权限`);
+    }
+    assertOperationAllowed(field, config.operation);
 
     const method = config.operation === 'countNonEmpty'
       ? 'count'
@@ -82,7 +136,7 @@ export async function aggregateTableSummary(ctx: any) {
 
     const value = await repository.aggregate({
       method,
-      field: config.field,
+      field: head,
       filter: params.filter,
     });
     result[config.field] = value ?? (config.operation === 'countNonEmpty' || config.operation === 'sum' ? 0 : null);

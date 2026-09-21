@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculatePageSummary } from '../aggregation';
+import { calculatePageSummary } from '../../shared/aggregation';
 
 describe('calculatePageSummary', () => {
   const rows = [

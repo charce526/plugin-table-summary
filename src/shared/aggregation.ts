@@ -1,5 +1,19 @@
 import type { FieldSummaryConfig, SummaryResult, SummaryValue } from './types';
 
+/**
+ * 表格数据的轻量签名，用于判断数据是否发生变化。
+ * 分页、筛选之外，新增 / 编辑 / 删除 / 行内编辑同样会改变它，
+ * 统计栏据此重新计算“全部数据”的统计值。
+ */
+export function rowsSignature(rows: Record<string, any>[] | undefined): string {
+  if (!Array.isArray(rows) || !rows.length) return '';
+  try {
+    return JSON.stringify(rows);
+  } catch {
+    return `rows:${rows.length}`;
+  }
+}
+
 function nonEmpty(value: unknown) {
   return value !== null && value !== undefined;
 }
