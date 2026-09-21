@@ -1,10 +1,12 @@
 import { createUserProvider, parseJsonTemplate } from '@nocobase/acl';
 import { calculatePageSummary } from '../shared/aggregation';
 import type { FieldSummaryConfig } from '../shared/types';
+import { serverTranslate } from './i18n';
 
 interface RelationStep { name: string; collection: any; permission: any }
 
 export function resolveSummaryPath(ctx: any, collection: any, path: string) {
+  const t = serverTranslate(ctx);
   let permission = ctx.permission?.can;
   let field: any;
   const relations: RelationStep[] = [];
@@ -12,21 +14,23 @@ export function resolveSummaryPath(ctx: any, collection: any, path: string) {
   for (let index = 0; index < parts.length; index += 1) {
     const name = parts[index];
     field = collection.getField(name);
-    if (!field) ctx.throw(400, `统计字段 ${path} 不存在`);
+    if (!field) ctx.throw(400, t('Summary field not found: {{field}}', { field: path }));
     const params = permission?.params;
     if (Array.isArray(params?.fields) || Array.isArray(params?.appends)) {
       const allowed = [...(params.fields || []), ...(params.appends || [])];
-      if (!allowed.includes(name)) ctx.throw(403, `没有字段 ${path} 的查看权限`);
+      if (!allowed.includes(name)) ctx.throw(403, t('No permission to view field {{field}}', { field: path }));
     }
     const target = typeof field.targetCollection === 'function' ? field.targetCollection() : field.targetCollection;
     if (target) {
       const roles = ctx.state?.currentRoles?.length ? ctx.state.currentRoles : [ctx.state?.currentRole || 'anonymous'];
       permission = ctx.permission?.skip ? {} : ctx.acl?.can({ roles, resource: target.name, action: 'view' });
-      if (!permission) ctx.throw(403, `没有关联数据表 ${target.name} 的查看权限`);
+      if (!permission) {
+        ctx.throw(403, t('No permission to view associated collection {{collection}}', { collection: target.name }));
+      }
       relations.push({ name, collection: target, permission });
       collection = target;
     } else if (index < parts.length - 1) {
-      ctx.throw(400, `字段 ${name} 不是关联字段`);
+      ctx.throw(400, t('Field {{field}} is not a relation field', { field: name }));
     }
   }
   return { field, relations };
@@ -37,12 +41,13 @@ const plain = (row: any) => typeof row?.toJSON === 'function' ? row.toJSON() : r
 /** Appending related rows is not an ACL check: intersect them with each target's readable records. */
 async function restrictRelations(ctx: any, rows: any[], steps: RelationStep[], depth = 0): Promise<void> {
   if (depth >= steps.length) return;
+  const t = serverTranslate(ctx);
   const { name, collection, permission } = steps[depth];
   const related = rows.flatMap((row) => Array.isArray(row[name]) ? row[name] : row[name] ? [row[name]] : []);
-  if (related.length > 50000) ctx.throw(400, '关联记录过多，请缩小筛选范围');
+  if (related.length > 50000) ctx.throw(400, t('Too many associated records; narrow the filter'));
   if (!related.length) return;
   const pk = collection.model?.primaryKeyAttribute;
-  if (!pk) ctx.throw(400, '关联数据源缺少可用主键，无法安全统计');
+  if (!pk) ctx.throw(400, t('The associated data source has no usable primary key'));
   const ids = [...new Set(related.map((row) => row[pk]).filter((id) => id !== null && id !== undefined))];
   let scope = permission?.params?.filter;
   if (scope) {
@@ -51,7 +56,7 @@ async function restrictRelations(ctx: any, rows: any[], steps: RelationStep[], d
       timezone: ctx.get?.('x-timezone'),
       userProvider: createUserProvider({ db: ctx.database, currentUser: ctx.state?.currentUser }),
     });
-    if (!scope) ctx.throw(403, '无法解析关联数据权限');
+    if (!scope) ctx.throw(403, t('Unable to resolve the associated data permission'));
   }
   const allowed = new Set<string>();
   for (let offset = 0; offset < ids.length; offset += 500) {
@@ -77,8 +82,9 @@ async function restrictRelations(ctx: any, rows: any[], steps: RelationStep[], d
 }
 
 export async function aggregateRelations(ctx: any, repository: any, config: FieldSummaryConfig, steps: RelationStep[]) {
+  const t = serverTranslate(ctx);
   const pk = repository.collection.model?.primaryKeyAttribute;
-  if (!pk || typeof repository.find !== 'function') ctx.throw(400, '当前数据源不支持关联统计');
+  if (!pk || typeof repository.find !== 'function') ctx.throw(400, t('The current data source does not support relation summary'));
   const rows: any[] = [];
   // Keep the current repository so association-block source constraints remain effective.
   // Never return a silently truncated "all records" aggregate.
@@ -90,7 +96,9 @@ export async function aggregateRelations(ctx: any, repository: any, config: Fiel
     });
     const items = (Array.isArray(batch) ? batch : batch ? [batch] : []).map(plain);
     rows.push(...items);
-    if (rows.length > 10000) ctx.throw(400, '关联统计最多处理 10000 条主表记录，请缩小筛选范围');
+    if (rows.length > 10000) {
+      ctx.throw(400, t('Relation summary processes at most {{count}} source records; narrow the filter', { count: 10000 }));
+    }
     if (items.length < 200) break;
   }
   await restrictRelations(ctx, rows, steps);

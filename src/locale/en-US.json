@@ -1,0 +1,20 @@
+{
+  "Summary configuration is not valid JSON": "Summary configuration is not valid JSON",
+  "At least one summary field is required": "At least one summary field is required",
+  "At most {{count}} summary fields are allowed": "At most {{count}} summary fields are allowed",
+  "Field {{field}} does not support this summary operation": "Field {{field}} does not support this summary operation",
+  "Collection not found": "Collection not found",
+  "Invalid summary configuration; configure 1 to 50 fields": "Invalid summary configuration; configure 1 to 50 fields",
+  "Invalid summary field or operation": "Invalid summary field or operation",
+  "The current data source does not support counting": "The current data source does not support counting",
+  "The current data source does not support aggregation": "The current data source does not support aggregation",
+  "Summary field not found: {{field}}": "Summary field not found: {{field}}",
+  "No permission to view field {{field}}": "No permission to view field {{field}}",
+  "No permission to view associated collection {{collection}}": "No permission to view associated collection {{collection}}",
+  "Field {{field}} is not a relation field": "Field {{field}} is not a relation field",
+  "Too many associated records; narrow the filter": "Too many associated records; narrow the filter",
+  "The associated data source has no usable primary key": "The associated data source has no usable primary key",
+  "Unable to resolve the associated data permission": "Unable to resolve the associated data permission",
+  "The current data source does not support relation summary": "The current data source does not support relation summary",
+  "Relation summary processes at most {{count}} source records; narrow the filter": "Relation summary processes at most {{count}} source records; narrow the filter"
+}

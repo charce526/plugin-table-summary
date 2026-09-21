@@ -1,0 +1,20 @@
+{
+  "Summary configuration is not valid JSON": "统计配置不是有效的 JSON",
+  "At least one summary field is required": "请至少配置一个统计字段",
+  "At most {{count}} summary fields are allowed": "一次最多统计 {{count}} 个字段",
+  "Field {{field}} does not support this summary operation": "字段 {{field}} 不支持该统计方式",
+  "Collection not found": "数据表不存在",
+  "Invalid summary configuration; configure 1 to 50 fields": "统计配置无效，请配置 1 至 50 个字段",
+  "Invalid summary field or operation": "统计字段或统计方式无效",
+  "The current data source does not support counting": "当前数据源不支持计数",
+  "The current data source does not support aggregation": "当前数据源不支持聚合统计",
+  "Summary field not found: {{field}}": "统计字段不存在：{{field}}",
+  "No permission to view field {{field}}": "没有字段 {{field}} 的查看权限",
+  "No permission to view associated collection {{collection}}": "没有关联数据表 {{collection}} 的查看权限",
+  "Field {{field}} is not a relation field": "字段 {{field}} 不是关联字段",
+  "Too many associated records; narrow the filter": "关联记录过多，请缩小筛选范围",
+  "The associated data source has no usable primary key": "关联数据源缺少可用主键，无法安全统计",
+  "Unable to resolve the associated data permission": "无法解析关联数据权限",
+  "The current data source does not support relation summary": "当前数据源不支持关联统计",
+  "Relation summary processes at most {{count}} source records; narrow the filter": "关联统计最多处理 {{count}} 条主表记录，请缩小筛选范围"
+}

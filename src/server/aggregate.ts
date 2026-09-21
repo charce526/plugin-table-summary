@@ -1,4 +1,5 @@
 import type { FieldSummaryConfig, SummaryFunction, SummaryResult } from '../shared/types';
+import { serverTranslate, type ServerTranslate } from './i18n';
 import { aggregateRelations, resolveSummaryPath } from './relations';
 
 const OPERATIONS = new Set<SummaryFunction>(['count', 'countNonEmpty', 'sum', 'average', 'max', 'min']);
@@ -8,20 +9,20 @@ const MAX_FIELDS = 50;
 const MAX_FIELD_DEPTH = 4;
 const SAFE_FIELD = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-function parseSummary(value: unknown): FieldSummaryConfig[] {
+function parseSummary(value: unknown, t: ServerTranslate): FieldSummaryConfig[] {
   let input = value;
   if (typeof input === 'string') {
     try {
       input = JSON.parse(input);
     } catch {
-      throw new Error('统计配置不是有效的 JSON');
+      throw new Error(t('Summary configuration is not valid JSON'));
     }
   }
   if (!Array.isArray(input) || !input.length) {
-    throw new Error('请至少配置一个统计字段');
+    throw new Error(t('At least one summary field is required'));
   }
   if (input.length > MAX_FIELDS) {
-    throw new Error(`一次最多统计 ${MAX_FIELDS} 个字段`);
+    throw new Error(t('At most {{count}} summary fields are allowed', { count: MAX_FIELDS }));
   }
   return input.map((item: any) => ({
     field: String(item?.field || ''),
@@ -34,26 +35,30 @@ function fieldType(field: any) {
   return String(field?.type || field?.options?.type || '').trim();
 }
 
-function assertOperationAllowed(field: any, operation: SummaryFunction) {
+function assertOperationAllowed(field: any, operation: SummaryFunction, t: ServerTranslate) {
   if (operation === 'count' || operation === 'countNonEmpty') return;
   const type = fieldType(field);
+  const unsupported = () => new Error(
+    t('Field {{field}} does not support this summary operation', { field: field.name }),
+  );
   if (operation === 'sum' || operation === 'average') {
-    if (!NUMERIC_TYPES.has(type)) throw new Error(`字段 ${field.name} 不支持该统计方式`);
+    if (!NUMERIC_TYPES.has(type)) throw unsupported();
     return;
   }
   if (!NUMERIC_TYPES.has(type) && !DATE_TYPES.has(type)) {
-    throw new Error(`字段 ${field.name} 不支持该统计方式`);
+    throw unsupported();
   }
 }
 
 export async function aggregateTableSummary(ctx: any) {
+  const t = serverTranslate(ctx);
   const repository: any = ctx.getCurrentRepository();
   const collection: any = repository?.collection;
-  if (!repository || !collection) ctx.throw(404, '数据表不存在');
+  if (!repository || !collection) ctx.throw(404, t('Collection not found'));
 
   const params: any = ctx.action?.params || {};
   let configs: FieldSummaryConfig[] = [];
-  try { configs = parseSummary(params.summary); } catch { ctx.throw(400, '统计配置无效，请配置 1 至 50 个字段'); }
+  try { configs = parseSummary(params.summary, t); } catch { ctx.throw(400, t('Invalid summary configuration; configure 1 to 50 fields')); }
   const result: SummaryResult = {};
 
   for (const config of configs) {
@@ -67,15 +72,15 @@ export async function aggregateTableSummary(ctx: any) {
       segments.some((segment) => !SAFE_FIELD.test(segment)) ||
       !OPERATIONS.has(config.operation)
     ) {
-      ctx.throw(400, '统计字段或统计方式无效');
+      ctx.throw(400, t('Invalid summary field or operation'));
     }
 
     const resolved = resolveSummaryPath(ctx, collection, config.field);
-    try { assertOperationAllowed(resolved.field, config.operation); } catch (error: any) { ctx.throw(400, error.message); }
+    try { assertOperationAllowed(resolved.field, config.operation, t); } catch (error: any) { ctx.throw(400, error.message); }
 
     // Validate path and permissions even for row counts.
     if (config.operation === 'count') {
-      if (typeof repository.count !== 'function') ctx.throw(400, '当前数据源不支持计数');
+      if (typeof repository.count !== 'function') ctx.throw(400, t('The current data source does not support counting'));
       result[resultKey] = await repository.count({ filter: params.filter, context: ctx });
       continue;
     }
@@ -91,7 +96,7 @@ export async function aggregateTableSummary(ctx: any) {
         ? 'avg'
         : config.operation;
 
-    if (typeof repository.aggregate !== 'function') ctx.throw(400, '当前数据源不支持聚合统计');
+    if (typeof repository.aggregate !== 'function') ctx.throw(400, t('The current data source does not support aggregation'));
     const value = await repository.aggregate({
       method,
       field: head,
