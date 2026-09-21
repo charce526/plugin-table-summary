@@ -1,9 +1,9 @@
-import { Application, Plugin } from '@nocobase/client';
+import { Plugin } from '@nocobase/client';
 import { registerTableSummaryV2 } from '../client-v2/registerTableSummary';
 import { useTableSummaryBlockProps } from './TableSummaryV1';
 import { tableSummaryBlockSetting, tableSummaryColumnSetting } from './settings';
 
-export default class PluginTableSummaryClient extends Plugin<any, Application> {
+export default class PluginTableSummaryClient extends Plugin {
   async load() {
     // V1 tables already use the scope name "useTableBlockProps". Replacing that
     // scope entry composes the native hook and adds summary only when enabled.

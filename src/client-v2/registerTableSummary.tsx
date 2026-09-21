@@ -67,7 +67,12 @@ export function registerTableSummaryV2() {
       },
       label: {
         title: tExpr('Summary label'),
-        uiMode: { type: 'input', key: 'label' },
+        uiSchema: {
+          label: {
+            'x-component': 'Input',
+            'x-decorator': 'FormItem',
+          },
+        },
         defaultParams: { label: '统计' },
         handler(ctx, params) {
           applySummary(ctx.model, { label: params.label || '统计' });

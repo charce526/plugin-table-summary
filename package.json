@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git+https://github.com/charce526/plugin-table-summary.git"
   },
-  "main": "dist/index.js",
+  "main": "dist/server/index.js",
   "license": "UNLICENSED",
   "keywords": ["nocobase", "plugin", "table", "summary", "xiezuo"],
   "engines": {
