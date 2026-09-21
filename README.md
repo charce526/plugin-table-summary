@@ -7,7 +7,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 包名 | `@xiezuo/plugin-table-summary` |
-| 当前版本 | 1.0.0 |
+| 当前版本 | 1.1.0 |
 | 适配版本 | NocoBase 2.2.10 ~ 2.2.x（V1 与 V2 页面） |
 | 依赖 | React 18、antd 5、Formily 2（作为 peerDependencies） |
 | 作者 | 偕作BIM |
@@ -30,7 +30,7 @@
 
 ## 安装
 
-本项目按 NocoBase 插件规范打包，产物为 `@xiezuo/plugin-table-summary-1.0.0.tgz`：
+本项目按 NocoBase 插件规范打包，产物为 `@xiezuo/plugin-table-summary-1.1.0.tgz`：
 
 1. 在应用的插件管理器中上传该插件包；
 2. 上传完成后启用插件；

@@ -1,6 +1,6 @@
 {
   "name": "@xiezuo/plugin-table-summary",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "displayName": "Table Summary",
   "displayName.zh-CN": "表格统计栏",
