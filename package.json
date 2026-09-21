@@ -1,11 +1,11 @@
 {
   "name": "@xiezuo/plugin-table-summary",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "displayName": "Table Summary",
   "displayName.zh-CN": "表格统计栏",
-  "description": "Add Excel-like summary rows to NocoBase table blocks.",
-  "description.zh-CN": "为 NocoBase 表格区块增加类似 Excel 的动态统计栏。",
+  "description": "Add dynamic summary rows to NocoBase table blocks: count, count non-empty, sum, average, maximum and minimum, with top/bottom placement, all-records or current-page scope, row highlight and display precision.",
+  "description.zh-CN": "为 NocoBase 表格区块增加动态统计栏，包含计数、非空计数、合计、平均值、最大值、最小值，支持表格顶部 / 底部展示、全部数据或当前页统计、统计行高亮与显示精度。",
   "author": {
     "name": "偕作BIM",
     "url": "https://www.xzbim.cn"
@@ -15,19 +15,25 @@
     "type": "git",
     "url": "git+https://github.com/charce526/plugin-table-summary.git"
   },
+  "bugs": {
+    "url": "https://github.com/charce526/plugin-table-summary/issues"
+  },
   "main": "dist/server/index.js",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "keywords": ["nocobase", "plugin", "table", "summary", "xiezuo"],
   "engines": {
     "node": ">=18"
   },
   "files": [
+    "dist",
+    "LICENSE",
     "client.js",
     "client-v2.js",
     "server.js",
     "client.d.ts",
     "client-v2.d.ts",
     "server.d.ts",
+    "README.md",
     "CHANGELOG.md"
   ],
   "peerDependencies": {

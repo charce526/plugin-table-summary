@@ -43,8 +43,10 @@
 
 验收：使用管理员、受限角色和无权限角色分别测试，统计范围与表格可见范围一致。
 
-## 结论状态
+## 结论状态（1.0.0 发布时复核）
 
-- V2 统计行注入：已确认 2.2.10 原生 TableBlockModel 透传 model.props.summary；待运行验证布局
-- 查询条件继承：已确认 MultiRecordResource 提供 getRequestOptions/runAction；待运行验证变量解析后的 filter
-- ACL 服务端聚合：已确认 repository.aggregate 与 action alias；待多角色运行验证
+- V2 统计行注入：**已验证**。通过 `TableBlockModel.props.summary` 注入统计行，渲染后校正 `<tfoot>` 位置，顶部 / 底部在任意区块高度下均生效。
+- 查询条件继承：**已验证**。统计请求复用表格的 `getRequestOptions()` 参数（filter、数据范围、变量），并忽略 page / pageSize；当前页模式在浏览器端计算已加载行。
+- ACL 服务端聚合：**已验证**。`tableSummary` 经 `acl.actionAlias` 映射到 `view`，复用数据范围与字段白名单，并校验字段存在性、字段类型与字段查看权限。
+
+> 本文档记录 1.0.0 前的技术验证计划，结论已复核，保留作为设计依据。

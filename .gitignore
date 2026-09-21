@@ -2,6 +2,7 @@ node_modules/
 dist/
 lib/
 coverage/
+storage/
 *.log
+*.tgz
 .DS_Store
-storage/\n
