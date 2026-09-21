@@ -28,6 +28,10 @@
 - **多语言**：内置简体中文与英文文案。
 - **权限一致**：统计复用集合查看权限的 ACL 数据范围与字段权限。
 
+## 插件演示
+<img width="913" height="854" alt="20260921-101" src="https://github.com/user-attachments/assets/7cd4e049-8466-4ce7-8529-cc4153f989a3" />
+
+
 ## 安装
 
 本项目按 NocoBase 插件规范打包，产物为 `@xiezuo/plugin-table-summary-1.1.0.tgz`：
