@@ -45,6 +45,6 @@
 
 ## 结论状态
 
-- V2 统计行注入：待 2.2.10 运行验证
-- 查询条件继承：待 2.2.10 运行验证
-- ACL 服务端聚合：待 2.2.10 运行验证
+- V2 统计行注入：已确认 2.2.10 原生 TableBlockModel 透传 model.props.summary；待运行验证布局
+- 查询条件继承：已确认 MultiRecordResource 提供 getRequestOptions/runAction；待运行验证变量解析后的 filter
+- ACL 服务端聚合：已确认 repository.aggregate 与 action alias；待多角色运行验证
