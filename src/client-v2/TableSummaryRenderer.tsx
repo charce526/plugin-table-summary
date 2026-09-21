@@ -68,7 +68,9 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
         if (!active) return;
         setError(reason?.message || '统计数据加载失败');
       })
-      .finally(() => active && setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
     return () => {
       active = false;

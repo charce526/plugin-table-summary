@@ -1,4 +1,3 @@
-import type { Context } from '@nocobase/actions';
 import type { FieldSummaryConfig, SummaryFunction, SummaryResult } from '../shared/types';
 
 const OPERATIONS = new Set<SummaryFunction>(['count', 'countNonEmpty', 'sum', 'average', 'max', 'min']);
@@ -44,7 +43,7 @@ function assertOperationAllowed(field: any, operation: SummaryFunction) {
   }
 }
 
-export async function aggregateTableSummary(ctx: Context) {
+export async function aggregateTableSummary(ctx: any) {
   const repository: any = ctx.getCurrentRepository();
   const collection: any = repository?.collection;
   if (!repository || !collection) ctx.throw(404, '数据表不存在');

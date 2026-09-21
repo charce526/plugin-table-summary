@@ -39,14 +39,14 @@ export function calculatePageSummary(
         break;
       }
       case 'max': {
-        const candidates = values.filter(nonEmpty);
+        const candidates = values.filter(nonEmpty) as any[];
         value = candidates.length
           ? candidates.reduce((current, item) => (item > current ? item : current)) as SummaryValue
           : null;
         break;
       }
       case 'min': {
-        const candidates = values.filter(nonEmpty);
+        const candidates = values.filter(nonEmpty) as any[];
         value = candidates.length
           ? candidates.reduce((current, item) => (item < current ? item : current)) as SummaryValue
           : null;
