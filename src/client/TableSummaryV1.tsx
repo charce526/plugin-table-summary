@@ -66,6 +66,9 @@ function columnsOf(tableSchema: any) {
 function formatSummaryValue(value: unknown, column: any, config: TableSummaryConfig) {
   if (value === null || value === undefined || value === '') return '—';
   const props = column?.fieldSchema?.['x-component-props'] || {};
+  if (['count', 'countNonEmpty'].includes(column?.operation)) {
+    return formatSummaryNumber(Number(value), { digits: 0 });
+  }
   if (typeof value === 'number') {
     return formatSummaryNumber(value, {
       // 统计栏设置里的显示精度优先，未配置时跟随字段自身精度
@@ -125,7 +128,7 @@ function V1Summary({
     () =>
       rowColumns
         .filter((column) => column.field && column.operation && column.operation !== 'none')
-        .map((column) => ({ field: column.field, operation: column.operation })),
+        .map((column) => ({ field: column.field, operation: column.operation, key: `${column.operation}:${column.field}` })),
     [rowColumns],
   );
   const fieldsKey = fields.map((item) => `${item.field}:${item.operation}`).join('|');
@@ -135,13 +138,18 @@ function V1Summary({
   const [error, setError] = useState('');
 
   // 数据签名变化（新增 / 编辑 / 删除 / 行内编辑 / 刷新）后需要重算“全部数据”统计。
-  const dataKey = useMemo(() => rowsSignature(rows), [rows]);
+  const dataKey = rowsSignature(rows);
 
   useEffect(() => {
     let active = true;
-    if (config.scope !== 'all' || !fields.length) return undefined;
+    if (config.scope !== 'all' || !fields.length) {
+      setLoading(false);
+      setError('');
+      return undefined;
+    }
     setLoading(true);
     setError('');
+    setAllValues({});
 
     (resource as any)
       .tableSummary({
@@ -225,7 +233,7 @@ function V1Summary({
       ) : null}
       {rowColumns.map((column, index) => {
         const configured = fields.some((item) => item.field === column.field);
-        const formatted = configured ? formatSummaryValue(values[column.field], column, config) : null;
+        const formatted = configured ? formatSummaryValue(values[`${column.operation}:${column.field}`], column, config) : null;
         const operationLabel = configured ? summaryOperationLabel(column.operation, t) : '';
         const primary = formatted ?? '';
         const secondary = operationLabel || '';

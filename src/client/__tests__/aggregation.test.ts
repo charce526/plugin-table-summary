@@ -33,4 +33,34 @@ describe('calculatePageSummary', () => {
       { field: 'date', operation: 'min' },
     ])).toEqual({ date: '2026-01-01' });
   });
+
+  it('reads nested to-one and to-many values without treating missing relations as zero', () => {
+    const related = [
+      { customer: { amount: '9' }, items: [{ price: 2 }, { price: 8 }] },
+      { customer: { amount: '100' }, items: [{ price: 5 }] },
+      { customer: null, items: [] },
+    ];
+    expect(calculatePageSummary(related, [{ field: 'customer.amount', operation: 'max' }]))
+      .toEqual({ 'customer.amount': 100 });
+    expect(calculatePageSummary(related, [{ field: 'items.price', operation: 'sum' }]))
+      .toEqual({ 'items.price': 15 });
+    expect(calculatePageSummary(related, [{ field: 'items.price', operation: 'average' }]))
+      .toEqual({ 'items.price': 5 });
+    expect(calculatePageSummary(related, [{ field: 'items.price', operation: 'countNonEmpty' }]))
+      .toEqual({ 'items.price': 3 });
+    expect(calculatePageSummary(related, [{ field: 'customer.amount', operation: 'count' }]))
+      .toEqual({ 'customer.amount': 3 });
+  });
+
+  it('does not coerce blank strings, booleans or objects into numeric values', () => {
+    expect(calculatePageSummary([{ n: '' }, { n: false }, { n: {} }, { n: 10 }], [
+      { field: 'n', operation: 'average' },
+    ])).toEqual({ n: 10 });
+  });
+  it('keeps independent operations for duplicated fields', () => {
+    expect(calculatePageSummary([{ n: 1 }, { n: 3 }], [
+      { field: 'n', operation: 'sum', key: 'sum:n' },
+      { field: 'n', operation: 'average', key: 'average:n' },
+    ])).toEqual({ 'sum:n': 4, 'average:n': 2 });
+  });
 });

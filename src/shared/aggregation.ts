@@ -15,19 +15,24 @@ export function rowsSignature(rows: Record<string, any>[] | undefined): string {
 }
 
 function nonEmpty(value: unknown) {
-  return value !== null && value !== undefined;
+  return value !== null && value !== undefined && (!Array.isArray(value) || value.length > 0);
 }
 
 function numeric(values: unknown[]) {
   return values
-    .filter(nonEmpty)
+    .filter((value) => nonEmpty(value) && (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')))
     .map(Number)
     .filter((value) => Number.isFinite(value));
 }
 
-function readValue(row: Record<string, any>, path: string) {
+export function readValue(row: Record<string, any>, path: string): any {
   if (Object.prototype.hasOwnProperty.call(row, path)) return row[path];
-  return path.split('.').reduce((value: any, part) => value?.[part], row);
+  const read = (value: any, parts: string[]): any => {
+    if (!parts.length) return value;
+    if (Array.isArray(value)) return value.flatMap((item) => read(item, parts) ?? []);
+    return read(value?.[parts[0]], parts.slice(1));
+  };
+  return read(row, path.split('.'));
 }
 
 export function calculatePageSummary(
@@ -37,7 +42,10 @@ export function calculatePageSummary(
   const result: SummaryResult = {};
 
   for (const config of fields) {
-    const values = rows.map((row) => readValue(row, config.field));
+    const values = rows.flatMap((row) => {
+      const value = readValue(row, config.field);
+      return Array.isArray(value) ? value.flat(Infinity) : [value];
+    });
     let value: SummaryValue;
 
     switch (config.operation) {
@@ -58,14 +66,14 @@ export function calculatePageSummary(
         break;
       }
       case 'max': {
-        const candidates = values.filter(nonEmpty) as any[];
+        const candidates = comparable(values);
         value = candidates.length
           ? candidates.reduce((current, item) => (item > current ? item : current)) as SummaryValue
           : null;
         break;
       }
       case 'min': {
-        const candidates = values.filter(nonEmpty) as any[];
+        const candidates = comparable(values);
         value = candidates.length
           ? candidates.reduce((current, item) => (item < current ? item : current)) as SummaryValue
           : null;
@@ -75,8 +83,15 @@ export function calculatePageSummary(
         value = null;
     }
 
-    result[config.field] = value;
+    result[config.key || config.field] = value;
   }
 
   return result;
+}
+
+// SQL DECIMAL/BIGINT commonly arrive as strings. Do not compare "9" > "100" lexically.
+function comparable(values: unknown[]): any[] {
+  const present = values.filter(nonEmpty);
+  const numbers = numeric(present);
+  return numbers.length === present.length ? numbers : present;
 }

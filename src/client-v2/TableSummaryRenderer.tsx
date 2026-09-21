@@ -16,7 +16,12 @@ import type { FieldSummaryConfig, SummaryResult, TableSummaryConfig } from '../s
 const EMPTY_ROWS: any[] = [];
 
 function columnField(column: any) {
-  return column?.collectionField?.name || column?.props?.dataIndex;
+  const path = column?.fieldPath || column?.props?.dataIndex || column?.collectionField?.name;
+  const normalized = Array.isArray(path) ? path.join('.') : path;
+  const prefix = column?.context?.prefixFieldPath;
+  return prefix && typeof normalized === 'string' && normalized.startsWith(`${prefix}.`)
+    ? normalized.slice(prefix.length + 1)
+    : normalized;
 }
 
 function formatValue(value: unknown, column: any, config: TableSummaryConfig) {
@@ -24,6 +29,13 @@ function formatValue(value: unknown, column: any, config: TableSummaryConfig) {
   const field = column?.collectionField;
   const type = String(field?.type || field?.options?.type || '');
   const componentProps = field?.getComponentProps?.() || {};
+
+  if (['count', 'countNonEmpty'].includes(column?.props?.summaryOperation)) {
+    return formatSummaryNumber(Number(value), { digits: 0 });
+  }
+  if (['integer', 'bigInt', 'float', 'double', 'decimal', 'real', 'number'].includes(type) && typeof value === 'string' && Number.isFinite(Number(value))) {
+    value = Number(value);
+  }
 
   if (['date', 'dateOnly', 'datetime', 'timestamp'].includes(type)) {
     const date = new Date(value as any);
@@ -45,7 +57,7 @@ function getFieldConfigs(columns: any[]): FieldSummaryConfig[] {
     .map((column: any) => {
       const field = columnField(column);
       const operation = column?.props?.summaryOperation;
-      return field && operation && operation !== 'none' ? { field, operation } : null;
+      return field && operation && operation !== 'none' ? { field, operation, key: `${operation}:${field}` } : null;
     })
     .filter(Boolean);
 }
@@ -76,14 +88,19 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
 
   // 数据签名变化（新增 / 编辑 / 删除 / 行内编辑 / 刷新）后需要重算“全部数据”统计，
   // 否则统计栏会停留在旧数字上。签名是字符串，不会因渲染次数变化而反复请求。
-  const dataKey = useMemo(() => rowsSignature(rows), [rows]);
+  const dataKey = rowsSignature(rows);
 
   useEffect(() => {
     let active = true;
-    if (config.scope !== 'all' || !fields.length) return undefined;
+    if (config.scope !== 'all' || !fields.length) {
+      setLoading(false);
+      setError('');
+      return undefined;
+    }
 
     setLoading(true);
     setError('');
+    setAllValues({});
     model.resource
       .runAction('tableSummary', {
         params: {
@@ -179,7 +196,7 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
       {columns.map((column: any, columnIndex: number) => {
         const field = columnField(column);
         const configured = fields.some((item) => item.field === field);
-        const formatted = configured ? formatValue(values[field], column, config) : null;
+        const formatted = configured ? formatValue(values[`${column.props.summaryOperation}:${field}`], column, config) : null;
         const operationLabel = configured ? summaryOperationLabel(column?.props?.summaryOperation, t) : '';
         const primary = formatted ?? '';
         const secondary = operationLabel || '';

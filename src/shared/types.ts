@@ -15,6 +15,8 @@ export type SummaryHighlight = 'none' | 'theme' | 'custom';
 export interface FieldSummaryConfig {
   field: string;
   operation: SummaryFunction;
+  /** Optional result key distinguishes duplicate columns using different operations. */
+  key?: string;
 }
 
 export interface TableSummaryConfig {

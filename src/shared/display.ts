@@ -141,7 +141,7 @@ export function precisionLabelKey(value: number): string {
 export function normalizePrecision(value: unknown): number | undefined {
   if (value === null || value === undefined || value === '') return undefined;
   const number = Number(value);
-  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : undefined;
+  return Number.isFinite(number) && number >= 0 ? Math.min(20, Math.floor(number)) : undefined;
 }
 
 /**
@@ -160,7 +160,8 @@ export function resolveFractionDigits(
   const field = normalizePrecision(fieldPrecision);
   if (field !== undefined) return field;
   const stepText = String(step ?? '');
-  return stepText.includes('.') ? stepText.split('.')[1].length : undefined;
+  const match = stepText.match(/^(?:\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i);
+  return match ? Math.min(20, Math.max(0, (match[1]?.length || 0) - Number(match[2] || 0))) : undefined;
 }
 
 /** 统计行中的数值展示：按精度千分位格式化，并带上字段的单位前后缀。 */

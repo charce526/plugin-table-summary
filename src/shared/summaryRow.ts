@@ -153,8 +153,8 @@ export function placeSummaryRow(anchorClass: string, position: 'top' | 'bottom')
       tfoot.style.display = 'table-row-group';
     }
   } else {
-    if (tfoot.previousElementSibling === tbody) {
-      table.appendChild(tfoot);
+    if (tfoot.previousElementSibling !== tbody) {
+      table.insertBefore(tfoot, tbody.nextSibling);
     }
     if (tfoot.style.display) {
       tfoot.style.display = '';

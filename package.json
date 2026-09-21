@@ -37,6 +37,7 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
+    "@nocobase/acl": ">=2.2.10 <2.3.0",
     "@nocobase/client": ">=2.2.10 <2.3.0",
     "@nocobase/client-v2": ">=2.2.10 <2.3.0",
     "@nocobase/database": ">=2.2.10 <2.3.0",
