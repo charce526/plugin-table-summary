@@ -1,6 +1,5 @@
 import { useField, useFieldSchema } from '@formily/react';
 import {
-  useAPIClient,
   useDataBlockResource,
   useTableBlockContext,
   useTableBlockProps,
