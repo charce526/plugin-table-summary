@@ -1,0 +1,44 @@
+{
+  "name": "@xiezuo/plugin-table-summary",
+  "version": "0.1.0",
+  "private": true,
+  "displayName": "Table Summary",
+  "displayName.zh-CN": "表格统计栏",
+  "description": "Add Excel-like summary rows to NocoBase table blocks.",
+  "description.zh-CN": "为 NocoBase 表格区块增加类似 Excel 的动态统计栏。",
+  "author": {
+    "name": "偕作BIM",
+    "url": "https://www.xzbim.cn"
+  },
+  "homepage": "https://www.xzbim.cn/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charce526/plugin-table-summary.git"
+  },
+  "main": "dist/index.js",
+  "license": "UNLICENSED",
+  "keywords": ["nocobase", "plugin", "table", "summary", "xiezuo"],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "client.js",
+    "client-v2.js",
+    "server.js",
+    "client.d.ts",
+    "client-v2.d.ts",
+    "server.d.ts",
+    "CHANGELOG.md"
+  ],
+  "peerDependencies": {
+    "@nocobase/client": ">=2.2.10 <2.3.0",
+    "@nocobase/client-v2": ">=2.2.10 <2.3.0",
+    "@nocobase/database": ">=2.2.10 <2.3.0",
+    "@nocobase/flow-engine": ">=2.2.10 <2.3.0",
+    "@nocobase/server": ">=2.2.10 <2.3.0",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@nocobase/cli": "2.2.10"
+  }
+}
