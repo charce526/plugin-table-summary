@@ -20,6 +20,7 @@ import {
   placeSummaryRow,
 } from '../shared/summaryRow';
 import type { FieldSummaryConfig, SummaryResult, TableSummaryConfig } from '../shared/types';
+import { effectiveRequestParams, withoutPagination } from '../shared/request';
 import { useSummaryTranslation } from './locale';
 
 const DEFAULT_CONFIG: TableSummaryConfig = {
@@ -153,10 +154,7 @@ function V1Summary({
 
     (resource as any)
       .tableSummary({
-        ...(requestParams || {}),
-        page: undefined,
-        pageSize: undefined,
-        paginate: false,
+        ...withoutPagination(requestParams),
         summary: JSON.stringify(fields),
       })
       .then((response: any) => {
@@ -290,7 +288,9 @@ export function useTableSummaryBlockProps() {
 
   const columns = columnsOf(fieldSchema);
   const rows = baseProps.value || field?.value || [];
-  const requestParams = service?.params?.[0] || {};
+  // Data scope belongs to _defaultParams in V1; mirror the native list request's
+  // merge order so the summary never drops the block-level filter.
+  const requestParams = effectiveRequestParams(service);
 
   return {
     ...baseProps,

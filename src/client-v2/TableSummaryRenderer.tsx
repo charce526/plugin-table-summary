@@ -11,6 +11,7 @@ import {
 import { NAMESPACE } from '../shared/locale';
 import { measureLeadingColumns, nextSummaryAnchorClass, placeSummaryRow } from '../shared/summaryRow';
 import type { FieldSummaryConfig, SummaryResult, TableSummaryConfig } from '../shared/types';
+import { withoutPagination } from '../shared/request';
 
 /** 无数据时复用同一个空数组，避免每次渲染都新建引用而反复触发统计请求。 */
 const EMPTY_ROWS: any[] = [];
@@ -104,10 +105,7 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
     model.resource
       .runAction('tableSummary', {
         params: {
-          ...(requestOptions.params || {}),
-          page: undefined,
-          pageSize: undefined,
-          paginate: false,
+          ...withoutPagination(requestOptions.params),
           summary: JSON.stringify(fields),
         },
       })
