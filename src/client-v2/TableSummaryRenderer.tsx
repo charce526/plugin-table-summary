@@ -86,6 +86,16 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
   const [allValues, setAllValues] = useState<SummaryResult>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const resource = model.resource;
+  const [refreshVersion, setRefreshVersion] = useState(0);
+
+  useEffect(() => {
+    const onRefresh = () => setRefreshVersion((version) => version + 1);
+    resource.on('refresh', onRefresh);
+    return () => {
+      resource.off('refresh', onRefresh);
+    };
+  }, [resource]);
 
   // 数据签名变化（新增 / 编辑 / 删除 / 行内编辑 / 刷新）后需要重算“全部数据”统计，
   // 否则统计栏会停留在旧数字上。签名是字符串，不会因渲染次数变化而反复请求。
@@ -124,7 +134,7 @@ export const TableSummaryRenderer = observer(({ model }: { model: any }) => {
     return () => {
       active = false;
     };
-  }, [config.scope, fieldsKey, requestKey, dataKey, t]);
+  }, [config.scope, fieldsKey, requestKey, dataKey, refreshVersion, resource, t]);
 
   const values = config.scope === 'page' ? calculatePageSummary(rows, fields) : allValues;
   const position = config.position === 'top' ? 'top' : 'bottom';

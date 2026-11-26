@@ -70,6 +70,9 @@ function formatSummaryValue(value: unknown, column: any, config: TableSummaryCon
   if (['count', 'countNonEmpty'].includes(column?.operation)) {
     return formatSummaryNumber(Number(value), { digits: 0 });
   }
+  if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) {
+    value = Number(value);
+  }
   if (typeof value === 'number') {
     return formatSummaryNumber(value, {
       // 统计栏设置里的显示精度优先，未配置时跟随字段自身精度
@@ -92,6 +95,7 @@ function V1Summary({
   rows,
   resource,
   requestParams,
+  listData,
   rowSelection,
   showIndex,
 }: {
@@ -100,6 +104,7 @@ function V1Summary({
   rows: Record<string, any>[];
   resource: any;
   requestParams: any;
+  listData: any;
   rowSelection: any;
   showIndex?: boolean;
 }) {
@@ -170,7 +175,7 @@ function V1Summary({
     return () => {
       active = false;
     };
-  }, [config.scope, fieldsKey, requestKey, resource, dataKey]);
+  }, [config.scope, fieldsKey, requestKey, resource, dataKey, listData]);
 
   const values = config.scope === 'page' ? calculatePageSummary(rows || [], fields) : allValues;
   const position = config.position === 'top' ? 'top' : 'bottom';
@@ -304,6 +309,7 @@ export function useTableSummaryBlockProps() {
         rows={rows}
         resource={resource}
         requestParams={requestParams}
+        listData={service?.data}
         rowSelection={baseProps.rowSelection ?? fieldSchema?.['x-component-props']?.rowSelection}
         showIndex={baseProps.showIndex}
       />

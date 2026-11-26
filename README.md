@@ -7,7 +7,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 包名 | `@xiezuo/plugin-table-summary` |
-| 当前版本 | 1.1.0 |
+| 当前版本 | 1.2.0（待发布） |
 | 适配版本 | NocoBase 2.2.10 ~ 2.2.x（V1 与 V2 页面） |
 | 依赖 | React 18、antd 5、Formily 2（作为 peerDependencies） |
 | 作者 | 偕作BIM |
@@ -34,7 +34,7 @@
 
 ## 安装
 
-本项目按 NocoBase 插件规范打包，产物为 `@xiezuo/plugin-table-summary-1.1.0.tgz`：
+本项目按 NocoBase 插件规范打包，产物为 `@xiezuo/plugin-table-summary-1.2.0.tgz`：
 
 1. 在应用的插件管理器中上传该插件包；
 2. 上传完成后启用插件；
@@ -79,11 +79,10 @@
 yarn nocobase-v1 build @xiezuo/plugin-table-summary
 
 # 单元测试（在仓库根目录执行；测试文件需位于 src/client|client-v2 下的 __tests__）
-npx vitest run packages/plugins/@xiezuo/plugin-table-summary
+npx vitest run --config packages/plugins/@xiezuo/plugin-table-summary/vitest.config.mts
 
-# 打包：按 NocoBase 插件规范生成插件包，产物在 storage/tar/
-# 注意：该命令会打包 packages/plugins 下的全部插件
-yarn nocobase-v1 tar
+# 完成类型声明后仅打包本插件，产物在 storage/tar/@xiezuo/
+yarn build @xiezuo/plugin-table-summary --only-tar
 ```
 
 ## 目录结构
