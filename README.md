@@ -7,7 +7,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 包名 | `@xiezuo/plugin-table-summary` |
-| 当前版本 | 1.2.0（待发布） |
+| 当前版本 | 1.2.0 |
 | 适配版本 | NocoBase 2.2.10 ~ 2.2.x（V1 与 V2 页面） |
 | 依赖 | React 18、antd 5、Formily 2（作为 peerDependencies） |
 | 作者 | 偕作BIM |
