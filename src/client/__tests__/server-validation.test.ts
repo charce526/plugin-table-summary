@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { DataTypes } from '@nocobase/database';
 
 vi.mock('@nocobase/acl', () => ({
   createUserProvider: () => ({}),
@@ -54,7 +55,10 @@ describe('server summary validation and SQL aggregation', () => {
     const { ctx, repository } = setup([{ field: 'amount', operation, key: `${operation}:amount` }]);
     await aggregateTableSummary(ctx);
     expect(ctx.body).toEqual({ [`${operation}:amount`]: expected });
-    expect(repository.aggregate).toHaveBeenCalledWith({ method, field: 'amount', filter: ctx.action.params.filter, context: ctx });
+    expect(repository.aggregate).toHaveBeenCalledWith({
+      method, field: 'amount', filter: ctx.action.params.filter, context: ctx,
+      ...(operation === 'countNonEmpty' ? { dataType: DataTypes.INTEGER } : {}),
+    });
   });
 
   it('counts all filtered records and validates field permissions first', async () => {

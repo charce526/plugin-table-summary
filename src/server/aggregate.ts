@@ -1,3 +1,4 @@
+import { DataTypes } from '@nocobase/database';
 import type { FieldSummaryConfig, SummaryFunction, SummaryResult } from '../shared/types';
 import { serverTranslate, type ServerTranslate } from './i18n';
 import { aggregateRelations, resolveSummaryPath } from './relations';
@@ -100,6 +101,7 @@ export async function aggregateTableSummary(ctx: any) {
     const value = await repository.aggregate({
       method,
       field: head,
+      ...(config.operation === 'countNonEmpty' ? { dataType: DataTypes.INTEGER } : {}),
       filter: params.filter,
       context: ctx,
     });
